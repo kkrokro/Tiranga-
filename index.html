@@ -1,0 +1,1738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#04070f">
+<title>GrowthX — Color Trading Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #04070f;
+    --bg2: #060c18;
+    --bg3: #0a1220;
+    --surface: #0d1828;
+    --surface2: #132030;
+    --border: rgba(56,139,255,0.08);
+    --border2: rgba(56,139,255,0.18);
+    --gold: #3b9eff;
+    --gold-dim: rgba(59,158,255,0.12);
+    --text: #e8f2ff;
+    --text2: #7fa8cc;
+    --text3: #3d5a78;
+    --red: #e84545;
+    --green: #2ecc8a;
+    --violet: #a855f7;
+    --blue: #3b9eff;
+    --red-dim: rgba(232,69,69,0.12);
+    --green-dim: rgba(46,204,138,0.12);
+    --violet-dim: rgba(168,85,247,0.12);
+    --radius: 12px;
+    --radius2: 18px;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    overflow-x: hidden;
+    padding-bottom: 110px;
+  }
+
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 9999; opacity: 0.4;
+  }
+
+  .ambient { position: fixed; pointer-events: none; border-radius: 50%; filter: blur(120px); z-index: 0; }
+  .ambient-1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(59,158,255,0.08) 0%, transparent 70%); top: -150px; right: -80px; }
+  .ambient-2 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(109,191,255,0.05) 0%, transparent 70%); bottom: 80px; left: -100px; }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 0 18px; height: 60px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(4,7,15,0.95); backdrop-filter: blur(24px);
+    border-bottom: 1px solid var(--border);
+  }
+  .logo { display: flex; align-items: center; gap: 9px; text-decoration: none; }
+  .logo-icon {
+    width: 30px; height: 30px;
+    border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    overflow: hidden; box-shadow: 0 0 16px rgba(59,158,255,0.4);
+  }
+  .logo-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .logo-text { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600; color: var(--text); }
+  .logo-text span { color: var(--blue); }
+  .nav-right { display: flex; align-items: center; gap: 8px; }
+  .nav-badge {
+    font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.1em;
+    color: var(--gold); background: var(--gold-dim);
+    border: 1px solid rgba(59,158,255,0.25); padding: 3px 9px;
+    border-radius: 20px; text-transform: uppercase;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .nav-badge::before {
+    content: ''; width: 5px; height: 5px; background: var(--green);
+    border-radius: 50%; animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
+
+  /* MAIN */
+  main { position: relative; z-index: 1; padding-top: 60px; display: flex; flex-direction: column; align-items: center; }
+
+  /* TICKER */
+  .ticker-bar {
+    width: 100%; background: var(--bg2);
+    border-bottom: 1px solid var(--border); padding: 8px 0; overflow: hidden;
+  }
+  .ticker-inner { display: flex; gap: 40px; animation: ticker 20s linear infinite; white-space: nowrap; }
+  @keyframes ticker { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+  .ticker-item {
+    display: flex; align-items: center; gap: 7px;
+    font-family: 'DM Mono', monospace; font-size: 9px;
+    letter-spacing: 0.1em; color: var(--text3); text-transform: uppercase;
+  }
+  .ticker-item .dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+
+  /* PAGE WRAP */
+  .page-wrap {
+    width: 100%; max-width: 640px;
+    padding: 14px 14px 0;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+
+  /* ── INPUT CARD ── */
+  .input-card {
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: var(--radius2); overflow: hidden;
+  }
+  .input-card-header {
+    background: linear-gradient(135deg, rgba(59,158,255,0.12) 0%, transparent 100%);
+    padding: 14px 18px 12px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 11px;
+  }
+  .input-card-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--gold-dim); border: 1px solid rgba(59,158,255,0.25);
+    display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0;
+  }
+  .input-card-title { font-size: 14px; font-weight: 500; color: var(--text); }
+  .input-card-sub { font-size: 9px; color: var(--text3); font-family: 'DM Mono', monospace; letter-spacing: 0.05em; margin-top: 2px; }
+  .input-card-body { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 14px; }
+
+  /* STEP ROW */
+  .step-row { display: flex; align-items: flex-start; gap: 11px; }
+  .step-num {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--gold-dim); border: 1px solid rgba(59,158,255,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500;
+    color: var(--gold); flex-shrink: 0; margin-top: 1px;
+  }
+  .step-content { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .step-label { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+  /* DIGIT BOXES */
+  .digit-row { display: flex; gap: 8px; }
+  .digit-box {
+    flex: 1; height: 60px; max-width: 68px;
+    border: 1.5px solid var(--border2); border-radius: 12px; background: var(--bg3);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Mono', monospace; font-size: 26px; font-weight: 500;
+    color: var(--text3); transition: all 0.2s ease;
+    position: relative; cursor: pointer; user-select: none;
+  }
+  .digit-box.filled { color: var(--gold); border-color: rgba(59,158,255,0.5); background: rgba(59,158,255,0.07); }
+  .digit-box.active { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(59,158,255,0.15); }
+  .digit-box.active::after {
+    content: ''; position: absolute; width: 2px; height: 28px;
+    background: var(--gold); border-radius: 1px; animation: blink 1s ease-in-out infinite;
+  }
+  .digit-box.filled.active::after { display: none; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  .real-input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+
+  /* PREDICT BTN */
+  .predict-btn {
+    width: 100%; height: 50px;
+    background: linear-gradient(135deg, #1a7fe8 0%, #3b9eff 60%, #6dbfff 100%);
+    border: none; border-radius: var(--radius); color: #fff;
+    font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;
+    transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 8px;
+    box-shadow: 0 4px 18px rgba(59,158,255,0.35); position: relative; overflow: hidden;
+  }
+  .predict-btn:active { transform: scale(0.98); }
+  .predict-btn.loading { pointer-events: none; opacity: 0.8; }
+  .btn-spinner {
+    width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: none;
+  }
+  .predict-btn.loading .btn-spinner { display: block; }
+  @keyframes spin { to{transform:rotate(360deg)} }
+
+  .input-hint { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; letter-spacing: 0.03em; text-align: center; }
+  .input-hint.error { color: var(--red); }
+
+  /* ── RESULT CARD ── */
+  .result-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius2); overflow: hidden;
+    opacity: 0; transform: translateY(14px);
+    transition: all 0.5s cubic-bezier(0.16,1,0.3,1); pointer-events: none;
+  }
+  .result-card.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+  /* RESULT HEADER */
+  .result-header {
+    padding: 14px 18px;
+    background: linear-gradient(135deg, rgba(59,158,255,0.1) 0%, transparent 100%);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .result-period-label { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:0.18em; text-transform:uppercase; color:var(--text3); }
+  .result-period-val { font-family:'DM Mono',monospace; font-size:22px; font-weight:500; color:var(--text); letter-spacing:0.1em; margin-top:2px; }
+  .conf-badge { text-align: right; }
+  .conf-val { font-family:'DM Mono',monospace; font-size:30px; font-weight:500; line-height:1; color:var(--green); }
+  .conf-lbl { font-size:9px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text3); margin-top:2px; }
+
+  /* BIG RESULT ROW — Color + Big/Small side by side */
+  .main-result-row {
+    padding: 14px 14px 0;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+
+  .res-block {
+    padding: 14px; border-radius: var(--radius);
+    border: 1px solid var(--border); background: var(--bg3);
+  }
+  .res-label { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text3); font-family: 'DM Mono', monospace; margin-bottom: 10px; }
+
+  /* COLOR BLOCK */
+  .color-row { display: flex; align-items: center; gap: 12px; }
+  .color-orb {
+    width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+    position: relative; transition: transform 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .color-orb::after {
+    content: ''; position: absolute; inset: -3px; border-radius: 50%;
+    border: 1px solid currentColor; opacity: 0.3; animation: orbPulse 2s ease-in-out infinite;
+  }
+  @keyframes orbPulse { 0%,100%{transform:scale(1);opacity:0.3} 50%{transform:scale(1.15);opacity:0.1} }
+  .color-orb.red { background: var(--red); box-shadow: 0 0 20px rgba(232,69,69,0.5); color: var(--red); }
+  .color-orb.green { background: var(--green); box-shadow: 0 0 20px rgba(46,204,138,0.5); color: var(--green); }
+  .color-orb.violet { background: var(--violet); box-shadow: 0 0 20px rgba(168,85,247,0.5); color: var(--violet); }
+
+  .color-name { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 500; line-height: 1; }
+  .color-name.red { color: var(--red); }
+  .color-name.green { color: var(--green); }
+  .color-name.violet { color: var(--violet); }
+  .color-signal { font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace; margin-top: 4px; }
+
+  /* SIZE BLOCK */
+  .size-big-display { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+  .size-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 8px 14px; border-radius: 30px;
+    font-size: 14px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .size-pill.big { background: var(--green-dim); color: var(--green); border: 1px solid rgba(46,204,138,0.3); }
+  .size-pill.small { background: var(--red-dim); color: var(--red); border: 1px solid rgba(232,69,69,0.3); }
+  .size-reason { font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace; line-height: 1.5; }
+
+  /* CONFIDENCE RING */
+  .conf-ring-wrap {
+    padding: 14px 14px 0;
+  }
+  .conf-ring-card {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .ring-svg { width: 72px; height: 72px; flex-shrink: 0; }
+  .ring-bg { fill: none; stroke: var(--surface2); stroke-width: 6; }
+  .ring-fill { fill: none; stroke-width: 6; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 1s cubic-bezier(0.16,1,0.3,1), stroke 0.3s; }
+  .ring-text { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; text-anchor: middle; dominant-baseline: central; }
+  .ring-subtext { font-family: 'DM Mono', monospace; font-size: 7px; text-anchor: middle; fill: #3d5a78; dominant-baseline: central; }
+
+  .conf-info { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .conf-title { font-size: 12px; font-weight: 500; color: var(--text); }
+  .conf-desc { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; line-height: 1.5; }
+  .conf-strength {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 10px; font-family: 'DM Mono', monospace;
+    padding: 3px 8px; border-radius: 8px; margin-top: 2px; width: fit-content;
+  }
+  .conf-strength.high { background: rgba(46,204,138,0.1); color: var(--green); border: 1px solid rgba(46,204,138,0.2); }
+  .conf-strength.med { background: rgba(59,158,255,0.1); color: var(--blue); border: 1px solid rgba(59,158,255,0.2); }
+
+  /* COLOR PROBABILITY BARS */
+  .breakdown-wrap { padding: 14px 14px 0; }
+  .breakdown-card {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px;
+  }
+  .breakdown-title {
+    font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--text3); font-family: 'DM Mono', monospace;
+    padding-bottom: 10px; border-bottom: 1px solid var(--border); margin-bottom: 10px;
+  }
+  .breakdown-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .breakdown-row:last-child { margin-bottom: 0; }
+  .breakdown-label { font-size: 12px; color: var(--text2); width: 54px; flex-shrink: 0; }
+  .breakdown-bar-track { flex: 1; height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .breakdown-bar-fill { height: 100%; border-radius: 3px; width: 0%; transition: width 1.2s cubic-bezier(0.16,1,0.3,1); }
+  .breakdown-bar-fill.red { background: linear-gradient(90deg, #e84545, #ff6b6b); }
+  .breakdown-bar-fill.green { background: linear-gradient(90deg, #2ecc8a, #5eeaab); }
+  .breakdown-bar-fill.violet { background: linear-gradient(90deg, #a855f7, #c77dff); }
+  .breakdown-pct { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text2); width: 32px; text-align: right; }
+
+  /* HISTORY */
+  .history-wrap { padding: 14px 14px 0; }
+  .history-header {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
+  }
+  .history-title { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text3); font-family: 'DM Mono', monospace; }
+  .clear-btn {
+    font-size: 9px; font-family: 'DM Mono', monospace; color: var(--text3);
+    background: none; border: none; cursor: pointer; letter-spacing: 0.05em;
+    padding: 2px 6px; border-radius: 4px; transition: color 0.2s;
+  }
+  .clear-btn:hover { color: var(--red); }
+  .history-list { display: flex; flex-direction: column; gap: 6px; }
+  .history-item {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 10px; padding: 10px 14px;
+    display: flex; align-items: center; gap: 10px;
+    animation: slideIn 0.3s ease both;
+  }
+  @keyframes slideIn { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:translateX(0)} }
+  .h-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .h-dot.red { background: var(--red); box-shadow: 0 0 6px rgba(232,69,69,0.5); }
+  .h-dot.green { background: var(--green); box-shadow: 0 0 6px rgba(46,204,138,0.5); }
+  .h-dot.violet { background: var(--violet); box-shadow: 0 0 6px rgba(168,85,247,0.5); }
+  .h-period { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text2); letter-spacing: 0.05em; }
+  .h-color { font-size: 12px; font-weight: 500; flex: 1; }
+  .h-color.red { color: var(--red); }
+  .h-color.green { color: var(--green); }
+  .h-color.violet { color: var(--violet); }
+  .h-size {
+    font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 2px 8px; border-radius: 10px; font-family: 'DM Mono', monospace;
+  }
+  .h-size.big { color: var(--green); background: var(--green-dim); }
+  .h-size.small { color: var(--red); background: var(--red-dim); }
+  .h-conf { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3); }
+
+  .history-empty {
+    text-align: center; padding: 14px; font-size: 11px;
+    color: var(--text3); font-family: 'DM Mono', monospace; letter-spacing: 0.05em;
+  }
+
+  /* FLOATING TG */
+  .tg-float {
+    position: fixed; bottom: 22px; right: 18px; z-index: 200;
+    width: 54px; height: 54px; border-radius: 50%;
+    background: linear-gradient(135deg, #229ED9, #1877b5);
+    box-shadow: 0 4px 18px rgba(34,158,217,0.55);
+    display: flex; align-items: center; justify-content: center;
+    text-decoration: none; cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .tg-float:active { transform: scale(0.94); }
+  .tg-float svg { width: 26px; height: 26px; }
+
+  .tg-label {
+    position: fixed; bottom: 22px; right: 84px; z-index: 200;
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 10px; padding: 7px 12px;
+    font-size: 11px; color: var(--text2);
+    font-family: 'DM Mono', monospace; letter-spacing: 0.04em;
+    white-space: nowrap; pointer-events: none;
+    opacity: 0; transform: translateX(6px);
+    transition: all 0.25s ease;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .tg-label.show { opacity: 1; transform: translateX(0); pointer-events: auto; }
+  .tg-label-dot { width: 6px; height: 6px; background: #229ED9; border-radius: 50%; animation: pulse 2s infinite; }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(10px);
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 10px; padding: 10px 18px;
+    font-size: 12px; color: var(--text); font-family: 'DM Mono', monospace;
+    opacity: 0; transition: all 0.3s ease; z-index: 300; white-space: nowrap;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 2px; }
+
+  @media (max-width: 380px) {
+    .digit-box { height: 54px; font-size: 22px; }
+    .main-result-row { grid-template-columns: 1fr; }
+  }
+
+
+  /* ═══════════════════════════════════════════════
+     LANDING PAGE + LOCK SCREEN
+  ═══════════════════════════════════════════════ */
+
+  body.locked main,
+  body.locked .tg-float,
+  body.locked .tg-label { filter: blur(6px); pointer-events: none; user-select: none; }
+
+  #landingOverlay {
+    position: fixed; inset: 0; z-index: 9000;
+    display: flex; flex-direction: column;
+    overflow-y: auto; background: var(--bg);
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ── NAV ── */
+  .lnav {
+    position: sticky; top: 0; z-index: 10;
+    height: 58px; padding: 0 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(4,7,15,0.92); backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+  .lnav-logo { display: flex; align-items: center; gap: 9px; text-decoration: none; }
+  .lnav-logo-icon {
+    width: 28px; height: 28px; border-radius: 7px; overflow: hidden;
+    box-shadow: 0 0 12px rgba(59,158,255,0.4);
+  }
+  .lnav-logo-icon img { width:100%; height:100%; object-fit:cover; display:block; }
+  .lnav-logo-text { font-family:'Cormorant Garamond',serif; font-size:18px; font-weight:600; color:var(--text); }
+  .lnav-logo-text span { color: var(--blue); }
+  .lnav-badge {
+    font-family:'DM Mono',monospace; font-size:9px; letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--green); background:rgba(46,204,138,0.1); border:1px solid rgba(46,204,138,0.25);
+    padding:3px 10px; border-radius:20px; display:flex; align-items:center; gap:5px;
+  }
+  .lnav-badge::before { content:''; width:5px; height:5px; border-radius:50%; background:var(--green); animation:pulse 2s infinite; }
+
+  /* ── HERO ── */
+  .l-hero {
+    position: relative; overflow: hidden;
+    padding: 52px 22px 44px;
+    background: linear-gradient(170deg, #060e20 0%, #04070f 55%);
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
+    text-align: center;
+  }
+  .l-hero::before {
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background:
+      radial-gradient(ellipse 80% 60% at 90% 0%, rgba(59,158,255,0.11) 0%, transparent 55%),
+      radial-gradient(ellipse 60% 50% at 10% 100%, rgba(168,85,247,0.08) 0%, transparent 55%),
+      radial-gradient(ellipse 40% 30% at 50% 50%, rgba(59,158,255,0.04) 0%, transparent 60%);
+  }
+  .l-hero-logo {
+    position:relative; width:76px; height:76px; border-radius:20px; overflow:hidden;
+    box-shadow: 0 0 0 1px rgba(59,158,255,0.35), 0 0 50px rgba(59,158,255,0.45);
+    animation: lglow 3s ease-in-out infinite alternate;
+  }
+  @keyframes lglow {
+    from { box-shadow: 0 0 0 1px rgba(59,158,255,0.3), 0 0 35px rgba(59,158,255,0.35); }
+    to   { box-shadow: 0 0 0 1px rgba(59,158,255,0.5), 0 0 60px rgba(59,158,255,0.6); }
+  }
+  .l-hero-logo img { width:100%; height:100%; object-fit:cover; display:block; }
+  .l-hero-eyebrow {
+    font-family:'DM Mono',monospace; font-size:9px; letter-spacing:0.22em;
+    text-transform:uppercase; color:var(--blue);
+    display:flex; align-items:center; gap:8px;
+  }
+  .l-hero-eyebrow::before,.l-hero-eyebrow::after { content:''; flex:1; height:1px; background:rgba(59,158,255,0.25); max-width:40px; }
+  .l-hero-h1 {
+    font-family:'Cormorant Garamond',serif; font-size:38px; font-weight:600;
+    color:var(--text); line-height:1.05; letter-spacing:-0.01em;
+  }
+  .l-hero-h1 span { color:var(--blue); }
+  .l-hero-sub {
+    font-size:13px; color:var(--text2); line-height:1.6; max-width:300px;
+    font-weight:300;
+  }
+  .l-hero-chips { display:flex; gap:7px; flex-wrap:wrap; justify-content:center; }
+  .l-chip {
+    display:flex; align-items:center; gap:5px; padding:5px 12px; border-radius:20px;
+    font-family:'DM Mono',monospace; font-size:9px; letter-spacing:0.1em; text-transform:uppercase;
+    border:1px solid; white-space:nowrap;
+  }
+  .l-chip.b { color:var(--blue);   background:rgba(59,158,255,0.08);  border-color:rgba(59,158,255,0.25); }
+  .l-chip.g { color:var(--green);  background:rgba(46,204,138,0.08);  border-color:rgba(46,204,138,0.25); }
+  .l-chip.v { color:var(--violet); background:rgba(168,85,247,0.08); border-color:rgba(168,85,247,0.25); }
+  .l-chip-dot { width:5px; height:5px; border-radius:50%; background:currentColor; animation:pulse 2s infinite; }
+
+  /* ── STATS STRIP ── */
+  .l-stats {
+    display:grid; grid-template-columns:repeat(3,1fr);
+    border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+    background:var(--bg2);
+  }
+  .l-stat {
+    padding:16px 10px; display:flex; flex-direction:column; align-items:center; gap:4px;
+    border-right:1px solid var(--border);
+  }
+  .l-stat:last-child { border-right:none; }
+  .l-stat-num {
+    font-family:'DM Mono',monospace; font-size:20px; font-weight:500; color:var(--text);
+    line-height:1;
+  }
+  .l-stat-num span { color:var(--blue); }
+  .l-stat-lbl { font-size:9px; color:var(--text3); font-family:'DM Mono',monospace; letter-spacing:0.08em; text-transform:uppercase; text-align:center; }
+
+  /* ── SECTION WRAPPER ── */
+  .l-section { padding:28px 18px; display:flex; flex-direction:column; gap:16px; }
+  .l-section-head {
+    display:flex; flex-direction:column; gap:4px;
+  }
+  .l-section-label {
+    font-family:'DM Mono',monospace; font-size:9px; letter-spacing:0.2em;
+    text-transform:uppercase; color:var(--blue);
+    display:flex; align-items:center; gap:8px;
+  }
+  .l-section-label::after { content:''; flex:1; height:1px; background:rgba(59,158,255,0.18); }
+  .l-section-title { font-family:'Cormorant Garamond',serif; font-size:24px; font-weight:600; color:var(--text); line-height:1.1; }
+  .l-section-sub { font-size:12px; color:var(--text2); line-height:1.6; }
+
+  /* ── FEATURES ── */
+  .l-features { display:flex; flex-direction:column; gap:10px; }
+  .l-feat {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius2); padding:16px;
+    display:flex; gap:14px; align-items:flex-start;
+    transition:border-color 0.2s;
+  }
+  .l-feat:hover { border-color:var(--border2); }
+  .l-feat-icon {
+    width:40px; height:40px; border-radius:11px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .l-feat-icon.b { background:rgba(59,158,255,0.1);  border:1px solid rgba(59,158,255,0.2); }
+  .l-feat-icon.g { background:rgba(46,204,138,0.1);  border:1px solid rgba(46,204,138,0.2); }
+  .l-feat-icon.v { background:rgba(168,85,247,0.1); border:1px solid rgba(168,85,247,0.2); }
+  .l-feat-icon.r { background:rgba(232,69,69,0.1);   border:1px solid rgba(232,69,69,0.2); }
+  .l-feat-body { flex:1; display:flex; flex-direction:column; gap:5px; }
+  .l-feat-title { font-size:13px; font-weight:500; color:var(--text); }
+  .l-feat-desc { font-size:11px; color:var(--text2); line-height:1.55; }
+  .l-feat-tag {
+    display:inline-block; padding:2px 8px; border-radius:6px;
+    font-family:'DM Mono',monospace; font-size:8px; letter-spacing:0.08em; text-transform:uppercase;
+    width:fit-content; margin-top:2px;
+  }
+  .l-feat-tag.b { color:var(--blue);  background:rgba(59,158,255,0.1); }
+  .l-feat-tag.g { color:var(--green); background:rgba(46,204,138,0.1); }
+  .l-feat-tag.v { color:var(--violet);background:rgba(168,85,247,0.1); }
+
+  /* ── HOW IT WORKS ── */
+  .l-steps { display:flex; flex-direction:column; gap:0; }
+  .l-step { display:flex; gap:14px; align-items:flex-start; padding:14px 0; position:relative; }
+  .l-step:not(:last-child)::after {
+    content:''; position:absolute; left:19px; top:52px; width:2px;
+    height:calc(100% - 30px); background:linear-gradient(to bottom, var(--border2), transparent);
+  }
+  .l-step-num {
+    width:38px; height:38px; border-radius:50%; flex-shrink:0;
+    background:linear-gradient(135deg, rgba(59,158,255,0.15), rgba(59,158,255,0.05));
+    border:1px solid rgba(59,158,255,0.35);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'DM Mono',monospace; font-size:13px; font-weight:500; color:var(--gold);
+  }
+  .l-step-content { flex:1; padding-top:7px; display:flex; flex-direction:column; gap:4px; }
+  .l-step-title { font-size:13px; font-weight:500; color:var(--text); }
+  .l-step-desc { font-size:11px; color:var(--text2); line-height:1.55; }
+
+  /* ── PREVIEW CARD ── */
+  .l-preview-wrap { padding:0 18px 10px; }
+  .l-preview-label {
+    font-family:'DM Mono',monospace; font-size:9px; letter-spacing:0.18em;
+    text-transform:uppercase; color:var(--text3); text-align:center;
+    margin-bottom:10px; display:flex; align-items:center; gap:8px; justify-content:center;
+  }
+  .l-preview-label::before,.l-preview-label::after { content:''; flex:1; height:1px; background:rgba(255,255,255,0.05); max-width:50px; }
+  .l-prev-card {
+    background:var(--surface); border:1px solid var(--border2);
+    border-radius:var(--radius2); overflow:hidden; pointer-events:none; user-select:none;
+    position:relative;
+  }
+  .l-prev-card::after {
+    content:'UNLOCK TO USE'; position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(4,7,15,0.65); backdrop-filter:blur(3px);
+    font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.2em;
+    color:var(--text3); text-transform:uppercase;
+  }
+  .l-prev-head {
+    padding:12px 16px; background:linear-gradient(135deg,rgba(59,158,255,0.1) 0%,transparent 100%);
+    border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px;
+  }
+  .l-prev-icon {
+    width:32px; height:32px; border-radius:9px;
+    background:var(--gold-dim); border:1px solid rgba(59,158,255,0.25);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .l-prev-title { font-size:13px; font-weight:500; color:var(--text); }
+  .l-prev-sub { font-size:9px; color:var(--text3); font-family:'DM Mono',monospace; margin-top:1px; }
+  .l-prev-body { padding:14px 16px; display:flex; flex-direction:column; gap:10px; }
+  .l-prev-digits { display:flex; gap:8px; }
+  .l-prev-digit {
+    flex:1; height:52px; max-width:62px;
+    border:1.5px solid var(--border2); border-radius:10px; background:var(--bg3);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'DM Mono',monospace; font-size:22px; color:var(--text3);
+  }
+  .l-prev-btn {
+    width:100%; height:46px; border-radius:var(--radius);
+    background:linear-gradient(135deg,#1a7fe8,#3b9eff,#6dbfff);
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    font-family:'Outfit',sans-serif; font-size:13px; font-weight:600;
+    letter-spacing:0.08em; text-transform:uppercase; color:#fff;
+    box-shadow:0 4px 16px rgba(59,158,255,0.3);
+  }
+  .l-prev-result {
+    background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius);
+    padding:12px 14px; display:flex; align-items:center; gap:12px;
+  }
+  .l-prev-orb {
+    width:40px; height:40px; border-radius:50%; flex-shrink:0;
+  }
+  .l-prev-orb.green { background:var(--green); box-shadow:0 0 18px rgba(46,204,138,0.5); }
+  .l-prev-orb.red   { background:var(--red);   box-shadow:0 0 18px rgba(232,69,69,0.5); }
+  .l-prev-rtext { display:flex; flex-direction:column; gap:3px; }
+  .l-prev-rlabel { font-size:9px; color:var(--text3); font-family:'DM Mono',monospace; letter-spacing:0.1em; text-transform:uppercase; }
+  .l-prev-rval { font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:500; color:var(--green); }
+  .l-prev-conf { margin-left:auto; text-align:right; }
+  .l-prev-cnum { font-family:'DM Mono',monospace; font-size:22px; font-weight:500; color:var(--green); }
+  .l-prev-clbl { font-size:8px; color:var(--text3); font-family:'DM Mono',monospace; letter-spacing:0.1em; text-transform:uppercase; }
+
+  /* ── TESTIMONIALS ── */
+  .l-testi-grid { display:flex; flex-direction:column; gap:10px; }
+  .l-testi {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius2); padding:16px;
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .l-testi-stars { display:flex; gap:3px; }
+  .l-star { color:#f5c542; font-size:12px; }
+  .l-testi-text { font-size:12px; color:var(--text2); line-height:1.65; font-style:italic; }
+  .l-testi-user { display:flex; align-items:center; gap:10px; }
+  .l-testi-avatar {
+    width:34px; height:34px; border-radius:50%; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Cormorant Garamond',serif; font-size:14px; font-weight:600; color:#fff;
+  }
+  .l-testi-name { font-size:12px; font-weight:500; color:var(--text); }
+  .l-testi-handle { font-size:9px; color:var(--text3); font-family:'DM Mono',monospace; }
+  .l-testi-badge {
+    margin-left:auto; padding:3px 9px; border-radius:10px;
+    font-family:'DM Mono',monospace; font-size:8px; letter-spacing:0.08em; text-transform:uppercase;
+  }
+  .l-testi-badge.g { color:var(--green); background:rgba(46,204,138,0.1); border:1px solid rgba(46,204,138,0.2); }
+  .l-testi-badge.b { color:var(--blue);  background:rgba(59,158,255,0.1);  border:1px solid rgba(59,158,255,0.2); }
+
+  /* ── TRUST STRIP ── */
+  .l-trust {
+    background:var(--bg2); border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+    padding:16px 18px; display:flex; flex-direction:column; gap:10px;
+  }
+  .l-trust-label { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:0.15em; text-transform:uppercase; color:var(--text3); text-align:center; }
+  .l-trust-items { display:flex; justify-content:space-around; flex-wrap:wrap; gap:12px; }
+  .l-trust-item { display:flex; flex-direction:column; align-items:center; gap:5px; }
+  .l-trust-icon {
+    width:36px; height:36px; border-radius:10px;
+    background:var(--surface); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .l-trust-txt { font-size:9px; color:var(--text3); font-family:'DM Mono',monospace; letter-spacing:0.06em; text-align:center; }
+
+  /* ── LOCK SECTION ── */
+  .l-lock-wrap {
+    padding:28px 18px 48px; background:var(--bg);
+    display:flex; flex-direction:column; align-items:center; gap:20px;
+  }
+  .l-lock-head { text-align:center; display:flex; flex-direction:column; gap:8px; }
+  .l-lock-eyebrow {
+    font-family:'DM Mono',monospace; font-size:9px; letter-spacing:0.2em;
+    text-transform:uppercase; color:var(--text3);
+  }
+  .l-lock-title { font-family:'Cormorant Garamond',serif; font-size:26px; font-weight:600; color:var(--text); }
+  .l-lock-sub { font-size:11px; color:var(--text2); line-height:1.6; }
+  .lock-box {
+    width:100%; max-width:380px;
+    background:var(--surface); border:1px solid var(--border2);
+    border-radius:var(--radius2); padding:22px 20px;
+    display:flex; flex-direction:column; gap:16px;
+  }
+  .lock-box-head { display:flex; align-items:center; gap:12px; }
+  .lock-box-icon {
+    width:42px; height:42px; border-radius:12px; flex-shrink:0;
+    background:linear-gradient(135deg, rgba(59,158,255,0.15), rgba(168,85,247,0.1));
+    border:1px solid rgba(59,158,255,0.3);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .lock-box-title { font-size:14px; font-weight:500; color:var(--text); }
+  .lock-box-sub { font-size:10px; color:var(--text3); font-family:'DM Mono',monospace; letter-spacing:0.04em; margin-top:2px; }
+  .lock-input-wrap { position:relative; }
+  .lock-input {
+    width:100%; height:52px; padding:0 48px 0 16px;
+    background:var(--bg3); border:1.5px solid var(--border2);
+    border-radius:var(--radius); color:var(--text);
+    font-family:'DM Mono',monospace; font-size:15px; letter-spacing:0.15em;
+    outline:none; transition:border-color 0.2s, box-shadow 0.2s;
+    -webkit-text-security: disc;
+  }
+  .lock-input::placeholder { letter-spacing:0.1em; color:var(--text3); font-size:13px; }
+  .lock-input:focus { border-color:var(--gold); box-shadow:0 0 0 3px rgba(59,158,255,0.15); }
+  .lock-input.shake { animation:lshake 0.4s ease; border-color:var(--red)!important; box-shadow:0 0 0 3px rgba(232,69,69,0.15)!important; }
+  @keyframes lshake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-7px)} 40%{transform:translateX(7px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+  .lock-toggle {
+    position:absolute; right:14px; top:50%; transform:translateY(-50%);
+    background:none; border:none; cursor:pointer; color:var(--text3);
+    display:flex; align-items:center; padding:4px; transition:color 0.2s;
+  }
+  .lock-toggle:hover { color:var(--text2); }
+  .lock-btn {
+    width:100%; height:52px;
+    background:linear-gradient(135deg,#1a7fe8 0%,#3b9eff 60%,#6dbfff 100%);
+    border:none; border-radius:var(--radius); color:#fff;
+    font-family:'Outfit',sans-serif; font-size:14px; font-weight:600;
+    letter-spacing:0.08em; text-transform:uppercase; cursor:pointer;
+    transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:8px;
+    box-shadow:0 4px 20px rgba(59,158,255,0.38);
+  }
+  .lock-btn:active { transform:scale(0.98); }
+  .lock-btn.loading { opacity:0.7; pointer-events:none; }
+  .lock-divider { display:flex; align-items:center; gap:10px; }
+  .lock-divider::before,.lock-divider::after { content:''; flex:1; height:1px; background:var(--border); }
+  .lock-divider-txt { font-family:'DM Mono',monospace; font-size:9px; color:var(--text3); letter-spacing:0.1em; white-space:nowrap; }
+  .lock-tg-btn {
+    width:100%; height:46px; background:var(--bg3); border:1px solid rgba(34,158,217,0.3);
+    border-radius:var(--radius); color:#229ED9; cursor:pointer;
+    font-family:'DM Mono',monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    transition:all 0.2s;
+  }
+  .lock-tg-btn:hover { background:rgba(34,158,217,0.08); border-color:rgba(34,158,217,0.5); }
+  .lock-error {
+    font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.05em;
+    color:var(--red); text-align:center; min-height:14px; transition:opacity 0.3s;
+  }
+  .lock-error:empty { opacity:0; }
+  .lock-attempts { font-family:'DM Mono',monospace; font-size:9px; color:var(--text3); text-align:center; letter-spacing:0.05em; }
+
+  .l-footer {
+    padding:20px; background:var(--bg2); border-top:1px solid var(--border);
+    text-align:center; display:flex; flex-direction:column; gap:6px;
+  }
+  .l-footer-txt { font-family:'DM Mono',monospace; font-size:9px; color:var(--text3); letter-spacing:0.08em; text-transform:uppercase; }
+
+  .unlock-flash {
+    position:fixed; inset:0; z-index:9999; background:rgba(59,158,255,0.14);
+    pointer-events:none; opacity:0; transition:opacity 0.3s ease;
+  }
+  .unlock-flash.show { opacity:1; }
+
+  /* ── STICKY ACCESS BAR ── */
+  .sticky-access-bar {
+    position: sticky; top: 0; z-index: 90;
+    background: rgba(4,7,15,0.97); backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(59,158,255,0.18);
+    padding: 10px 16px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .sticky-access-left {
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .sticky-access-title {
+    font-size: 12px; font-weight: 500; color: var(--text); line-height: 1;
+  }
+  .sticky-access-sub {
+    font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text3);
+    letter-spacing: 0.06em;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .sticky-access-sub svg { flex-shrink: 0; }
+  .sticky-access-btn {
+    flex-shrink: 0;
+    height: 38px; padding: 0 18px;
+    background: linear-gradient(135deg, #1a7fe8 0%, #3b9eff 60%, #6dbfff 100%);
+    border: none; border-radius: 10px; color: #fff;
+    font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600;
+    letter-spacing: 0.07em; text-transform: uppercase; cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    box-shadow: 0 3px 14px rgba(59,158,255,0.4);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    white-space: nowrap;
+  }
+  .sticky-access-btn:active { transform: scale(0.97); }
+  .sticky-access-btn svg { flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ UNLOCK FLASH ═══════════ -->
+<div class="unlock-flash" id="unlockFlash"></div>
+
+<!-- ═══════════════════════════════════════════
+     LANDING PAGE OVERLAY
+═══════════════════════════════════════════ -->
+<div id="landingOverlay">
+
+  <!-- NAV -->
+  <nav class="lnav">
+    <div class="lnav-logo">
+      <div class="lnav-logo-icon"><img src="1.png" alt="Tiranga Games"></div>
+      <span class="lnav-logo-text">Growth<span>X</span></span>
+    </div>
+    <div class="lnav-badge">Live · v4.2</div>
+  </nav>
+
+  <!-- STICKY ACCESS BAR -->
+  <div class="sticky-access-bar">
+    <div class="sticky-access-left">
+      <div class="sticky-access-title">🔐 Members-only tool</div>
+      <div class="sticky-access-sub">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="#229ED9"><path d="M21.944 2.633a1.5 1.5 0 0 0-1.52-.222L2.37 9.745a1.5 1.5 0 0 0 .104 2.8l4.07 1.272 1.687 5.34a1 1 0 0 0 1.69.405l2.332-2.415 4.427 3.254a1.5 1.5 0 0 0 2.327-1.01l2.5-15a1.5 1.5 0 0 0-.563-1.758zM10 14.5l-1 3-1.5-4.75 9-5.5-6.5 7.25z"/></svg>
+        Get your key from Telegram
+      </div>
+    </div>
+    <button class="sticky-access-btn" onclick="document.getElementById('lockSection').scrollIntoView({behavior:'smooth'})">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Enter Key
+    </button>
+  </div>
+
+  <!-- HERO -->
+  <div class="l-hero">
+    <div class="l-hero-logo"><img src="1.png" alt="GrowthX"></div>
+    <div class="l-hero-eyebrow">Color Trading Intelligence</div>
+    <h1 class="l-hero-h1">Predict Smarter.<br>Win with <span>GrowthX</span></h1>
+    <p class="l-hero-sub">India's most accurate color &amp; number prediction engine for Tiranga Games. Powered by our proprietary Algo v4.2 — giving you the edge every round.</p>
+    <div class="l-hero-chips">
+      <div class="l-chip b"><div class="l-chip-dot"></div>Live Signals</div>
+      <div class="l-chip g"><div class="l-chip-dot"></div>94% Accuracy</div>
+      <div class="l-chip v">Period Analysis</div>
+    </div>
+  </div>
+
+  <!-- STATS STRIP -->
+  <div class="l-stats">
+    <div class="l-stat">
+      <div class="l-stat-num">12<span>K+</span></div>
+      <div class="l-stat-lbl">Active Users</div>
+    </div>
+    <div class="l-stat">
+      <div class="l-stat-num">94<span>%</span></div>
+      <div class="l-stat-lbl">Accuracy Rate</div>
+    </div>
+    <div class="l-stat">
+      <div class="l-stat-num">3<span>M+</span></div>
+      <div class="l-stat-lbl">Predictions</div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <div class="l-section">
+    <div class="l-section-head">
+      <div class="l-section-label">What You Get</div>
+      <div class="l-section-title">Built for Serious Traders</div>
+      <div class="l-section-sub">Every tool you need to stay ahead of the market.</div>
+    </div>
+    <div class="l-features">
+      <div class="l-feat">
+        <div class="l-feat-icon b">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="10" r="7"/><path d="M7 21h10M12 17v4"/><path d="M9.5 8.5c.5-1 1.5-1.5 2.5-1.5"/></svg>
+        </div>
+        <div class="l-feat-body">
+          <div class="l-feat-title">Period Prediction Engine</div>
+          <div class="l-feat-desc">Enter any 4-digit period number and get instant color &amp; big/small prediction backed by our Algo v4.2 pattern analysis.</div>
+          <div class="l-feat-tag b">Core Feature</div>
+        </div>
+      </div>
+      <div class="l-feat">
+        <div class="l-feat-icon g">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <div class="l-feat-body">
+          <div class="l-feat-title">Real-Time Confidence Score</div>
+          <div class="l-feat-desc">Every prediction comes with a live confidence ring and signal strength indicator. Know exactly how strong a signal is before you place a trade.</div>
+          <div class="l-feat-tag g">Live Intel</div>
+        </div>
+      </div>
+      <div class="l-feat">
+        <div class="l-feat-icon v">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--violet)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        </div>
+        <div class="l-feat-body">
+          <div class="l-feat-title">Color Probability Distribution</div>
+          <div class="l-feat-desc">See the exact Red / Green / Violet probability breakdown for each period so you can spot the dominant trend at a glance.</div>
+          <div class="l-feat-tag v">Analytics</div>
+        </div>
+      </div>
+      <div class="l-feat">
+        <div class="l-feat-icon r">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </div>
+        <div class="l-feat-body">
+          <div class="l-feat-title">Prediction History</div>
+          <div class="l-feat-desc">Track your last 5 predictions with color, size, period number and confidence score — all stored locally on your device.</div>
+          <div class="l-feat-tag b">History</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <div class="l-section" style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+    <div class="l-section-head">
+      <div class="l-section-label">How It Works</div>
+      <div class="l-section-title">3 Steps to Every Win</div>
+    </div>
+    <div class="l-steps">
+      <div class="l-step">
+        <div class="l-step-num">01</div>
+        <div class="l-step-content">
+          <div class="l-step-title">Open Your Trading App</div>
+          <div class="l-step-desc">Head to Tiranga Games and check the next upcoming period number — it's the 4-digit number shown before each round starts.</div>
+        </div>
+      </div>
+      <div class="l-step">
+        <div class="l-step-num">02</div>
+        <div class="l-step-content">
+          <div class="l-step-title">Enter the Period Number</div>
+          <div class="l-step-desc">Type the 4-digit period number into GrowthX. Our engine instantly runs it through Algo v4.2's pattern model.</div>
+        </div>
+      </div>
+      <div class="l-step">
+        <div class="l-step-num">03</div>
+        <div class="l-step-content">
+          <div class="l-step-title">Get Your Signal &amp; Trade</div>
+          <div class="l-step-desc">See the predicted color, big/small, confidence score and probability breakdown — then make your move with confidence.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PREVIEW -->
+  <div class="l-preview-wrap" style="padding-top:28px">
+    <div class="l-preview-label">Live Preview</div>
+    <div class="l-prev-card">
+      <div class="l-prev-head">
+        <div class="l-prev-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="10" r="7"/><path d="M7 21h10M12 17v4"/></svg>
+        </div>
+        <div>
+          <div class="l-prev-title">Period Prediction Engine</div>
+          <div class="l-prev-sub">GROWTHX · ALGO v4.2</div>
+        </div>
+      </div>
+      <div class="l-prev-body">
+        <div class="l-prev-digits">
+          <div class="l-prev-digit">–</div><div class="l-prev-digit">–</div>
+          <div class="l-prev-digit">–</div><div class="l-prev-digit">–</div>
+        </div>
+        <div class="l-prev-btn">
+          Predict
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        </div>
+        <div class="l-prev-result">
+          <div class="l-prev-orb green"></div>
+          <div class="l-prev-rtext">
+            <div class="l-prev-rlabel">Predicted Color</div>
+            <div class="l-prev-rval">Green</div>
+          </div>
+          <div class="l-prev-conf">
+            <div class="l-prev-cnum">94%</div>
+            <div class="l-prev-clbl">Confidence</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TESTIMONIALS -->
+  <div class="l-section" style="padding-top:28px;">
+    <div class="l-section-head">
+      <div class="l-section-label">Members Say</div>
+      <div class="l-section-title">Trusted by Traders Across India</div>
+    </div>
+    <div class="l-testi-grid">
+
+      <div class="l-testi">
+        <div class="l-testi-stars">
+          <span class="l-star">★</span><span class="l-star">★</span><span class="l-star">★</span><span class="l-star">★</span><span class="l-star">★</span>
+        </div>
+        <div class="l-testi-text">"GrowthX changed my game completely. The confidence score alone tells me when to go big and when to hold back. Made ₹4,200 in my first week."</div>
+        <div class="l-testi-user">
+          <div class="l-testi-avatar" style="background:linear-gradient(135deg,#3b9eff,#1a7fe8)">R</div>
+          <div>
+            <div class="l-testi-name">Rahul M.</div>
+            <div class="l-testi-handle">Mumbai · Member since Jan 2025</div>
+          </div>
+          <div class="l-testi-badge g">Verified</div>
+        </div>
+      </div>
+
+      <div class="l-testi">
+        <div class="l-testi-stars">
+          <span class="l-star">★</span><span class="l-star">★</span><span class="l-star">★</span><span class="l-star">★</span><span class="l-star">★</span>
+        </div>
+        <div class="l-testi-text">"I tried 3 other prediction tools before this. Nothing comes close to GrowthX. The color probability bars are insanely accurate — I hit 9 greens in a row last Friday."</div>
+        <div class="l-testi-user">
+          <div class="l-testi-avatar" style="background:linear-gradient(135deg,#2ecc8a,#1a9f6a)">P</div>
+          <div>
+            <div class="l-testi-name">Priya S.</div>
+            <div class="l-testi-handle">Bangalore · Member since Feb 2025</div>
+          </div>
+          <div class="l-testi-badge g">Verified</div>
+        </div>
+      </div>
+
+      <div class="l-testi">
+        <div class="l-testi-stars">
+          <span class="l-star">★</span><span class="l-star">★</span><span class="l-star">★</span><span class="l-star">★</span><span class="l-star">★</span>
+        </div>
+        <div class="l-testi-text">"The Telegram channel is gold. Signals drop before every round and the GrowthX tool confirms them. My accuracy went from 50% to above 85% in two weeks."</div>
+        <div class="l-testi-user">
+          <div class="l-testi-avatar" style="background:linear-gradient(135deg,#a855f7,#7c3aed)">A</div>
+          <div>
+            <div class="l-testi-name">Arjun K.</div>
+            <div class="l-testi-handle">Hyderabad · Member since Mar 2025</div>
+          </div>
+          <div class="l-testi-badge b">Pro Member</div>
+        </div>
+      </div>
+
+      <div class="l-testi">
+        <div class="l-testi-stars">
+          <span class="l-star">★</span><span class="l-star">★</span><span class="l-star">★</span><span class="l-star">★</span><span class="l-star">★</span>
+        </div>
+        <div class="l-testi-text">"Simple, fast, accurate. I use it before every single round. The period history tracking helps me spot patterns even GrowthX hasn't called yet. Worth every rupee."</div>
+        <div class="l-testi-user">
+          <div class="l-testi-avatar" style="background:linear-gradient(135deg,#e84545,#b91c1c)">D</div>
+          <div>
+            <div class="l-testi-name">Deepa R.</div>
+            <div class="l-testi-handle">Chennai · Member since Dec 2024</div>
+          </div>
+          <div class="l-testi-badge g">Verified</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TRUST STRIP -->
+  <div class="l-trust">
+    <div class="l-trust-label">Why Members Trust GrowthX</div>
+    <div class="l-trust-items">
+      <div class="l-trust-item">
+        <div class="l-trust-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="l-trust-txt">Secure<br>Access</div>
+      </div>
+      <div class="l-trust-item">
+        <div class="l-trust-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="l-trust-txt">Real-Time<br>Signals</div>
+      </div>
+      <div class="l-trust-item">
+        <div class="l-trust-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--violet)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div class="l-trust-txt">12K+<br>Members</div>
+      </div>
+      <div class="l-trust-item">
+        <div class="l-trust-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f5c542" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <div class="l-trust-txt">Top<br>Rated</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOCK / UNLOCK SECTION -->
+  <div class="l-lock-wrap" id="lockSection">
+    <div class="l-lock-head">
+      <div class="l-lock-eyebrow">Members Only</div>
+      <div class="l-lock-title">Enter Your Access Key</div>
+      <div class="l-lock-sub">
+        Already have a key? Type it below and tap <strong style="color:var(--text)">Unlock GrowthX</strong>.<br><br>
+        <span style="display:inline-flex;align-items:center;gap:6px;color:#229ED9;font-size:12px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="#229ED9"><path d="M21.944 2.633a1.5 1.5 0 0 0-1.52-.222L2.37 9.745a1.5 1.5 0 0 0 .104 2.8l4.07 1.272 1.687 5.34a1 1 0 0 0 1.69.405l2.332-2.415 4.427 3.254a1.5 1.5 0 0 0 2.327-1.01l2.5-15a1.5 1.5 0 0 0-.563-1.758zM10 14.5l-1 3-1.5-4.75 9-5.5-6.5 7.25z"/></svg>
+          Don't have a key? Join our <strong style="text-decoration:underline;cursor:pointer;" onclick="openTelegram()">Telegram channel</strong> to get one free.
+        </span>
+      </div>
+    </div>
+
+    <div class="lock-box">
+      <div class="lock-box-head">
+        <div class="lock-box-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </div>
+        <div>
+          <div class="lock-box-title">Secure Access</div>
+          <div class="lock-box-sub">Your key is hashed — never stored in plaintext</div>
+        </div>
+      </div>
+
+      <div class="lock-input-wrap">
+        <input class="lock-input" id="lockInput" type="password"
+          placeholder="Enter access key" maxlength="64"
+          autocomplete="off" autocorrect="off" spellcheck="false"
+          onkeydown="if(event.key==='Enter')tryUnlock()">
+        <button class="lock-toggle" id="lockToggle" onclick="toggleLockVis()" tabindex="-1">
+          <svg id="eyeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="lock-error" id="lockError"></div>
+
+      <button class="lock-btn" id="lockBtn" onclick="tryUnlock()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>
+        </svg>
+        Unlock GrowthX
+      </button>
+
+      <div class="lock-attempts" id="lockAttempts"></div>
+
+      <div class="lock-divider"><span class="lock-divider-txt">or get access via</span></div>
+
+      <button class="lock-tg-btn" onclick="openTelegram()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21.944 2.633a1.5 1.5 0 0 0-1.52-.222L2.37 9.745a1.5 1.5 0 0 0 .104 2.8l4.07 1.272 1.687 5.34a1 1 0 0 0 1.69.405l2.332-2.415 4.427 3.254a1.5 1.5 0 0 0 2.327-1.01l2.5-15a1.5 1.5 0 0 0-.563-1.758zM10 14.5l-1 3-1.5-4.75 9-5.5-6.5 7.25z" fill="#229ED9"/></svg>
+        Join GrowthX Telegram
+      </button>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="l-footer">
+    <div class="l-footer-txt">GrowthX Intelligence · Algo v4.2 · All rights reserved</div>
+    <div class="l-footer-txt" style="opacity:0.5">Powered by Tiranga Games Analytics</div>
+  </div>
+
+</div><!-- end landingOverlay -->
+
+<div class="ambient ambient-1"></div>
+<div class="ambient ambient-2"></div>
+
+<nav>
+  <a class="logo" href="#">
+    <div class="logo-icon"><img src="1.png" alt="Tiranga Games"></div>
+    <span class="logo-text">Growth<span>X</span></span>
+  </a>
+  <div class="nav-right">
+    <div class="nav-badge">Live</div>
+  </div>
+</nav>
+
+<main>
+
+  <div class="ticker-bar">
+    <div class="ticker-inner" id="tickerInner"></div>
+  </div>
+
+  <div class="page-wrap">
+
+    <!-- INPUT CARD -->
+    <div class="input-card">
+      <div class="input-card-header">
+        <div class="input-card-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="10" r="7"/>
+            <path d="M7 21h10M12 17v4"/>
+            <path d="M9.5 8.5c.5-1 1.5-1.5 2.5-1.5"/>
+          </svg>
+        </div>
+        <div>
+          <div class="input-card-title">Period Prediction Engine</div>
+          <div class="input-card-sub">GROWTHX · ALGO v4.2</div>
+        </div>
+      </div>
+      <div class="input-card-body">
+
+        <div class="step-row">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-label">Open your trading app and note the <strong style="color:var(--text)">4-digit period number</strong> for the next round.</div>
+          </div>
+        </div>
+
+        <div class="step-row">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-label">Tap the boxes and enter your 4-digit period number.</div>
+            <div class="digit-row" id="digitRow" onclick="focusInput()">
+              <div class="digit-box" id="d0">–</div>
+              <div class="digit-box" id="d1">–</div>
+              <div class="digit-box" id="d2">–</div>
+              <div class="digit-box" id="d3">–</div>
+            </div>
+            <input type="text" id="realInput" class="real-input" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+            <div class="input-hint" id="inputHint">Tap boxes above to start entering digits</div>
+          </div>
+        </div>
+
+        <div class="step-row">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-label">Tap Predict to get your color &amp; big/small signal.</div>
+            <button class="predict-btn" id="predictBtn" onclick="runPrediction()">
+              <div class="btn-spinner"></div>
+              <span class="btn-text" style="display:flex;align-items:center;gap:7px;">Predict <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RESULT CARD -->
+    <div class="result-card" id="resultCard">
+
+      <div class="result-header">
+        <div>
+          <div class="result-period-label">Prediction · Period</div>
+          <div class="result-period-val" id="resultPeriod">——</div>
+        </div>
+        <div class="conf-badge">
+          <div class="conf-val" id="resultConf">—</div>
+          <div class="conf-lbl">Confidence</div>
+        </div>
+      </div>
+
+      <!-- COLOR + SIZE side by side -->
+      <div class="main-result-row">
+        <div class="res-block">
+          <div class="res-label" style="display:flex;align-items:center;gap:5px;">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M1 6c0 0 5-3 11-3s11 3 11 3"/><path d="M5 10c0 0 3-2 7-2s7 2 7 2"/><path d="M9 14c0 0 1-1 3-1s3 1 3 1"/><circle cx="12" cy="18" r="1" fill="currentColor"/></svg>
+            Predicted Color
+          </div>
+          <div class="color-row">
+            <div class="color-orb" id="colorOrb"></div>
+            <div>
+              <div class="color-name" id="colorName">—</div>
+              <div class="color-signal" id="colorSignal">—</div>
+            </div>
+          </div>
+        </div>
+        <div class="res-block">
+          <div class="res-label" style="display:flex;align-items:center;gap:5px;">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Big / Small
+          </div>
+          <div class="size-big-display">
+            <div class="size-pill" id="sizePill">—</div>
+            <div class="size-reason" id="sizeReason">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONFIDENCE RING -->
+      <div class="conf-ring-wrap">
+        <div class="conf-ring-card">
+          <svg class="ring-svg" viewBox="0 0 72 72">
+            <circle class="ring-bg" cx="36" cy="36" r="30"/>
+            <circle class="ring-fill" id="ringFill" cx="36" cy="36" r="30"
+              stroke-dasharray="188.5" stroke-dashoffset="188.5"/>
+            <text class="ring-text" id="ringText" x="36" y="33" fill="#e8f2ff">—</text>
+            <text class="ring-subtext" x="36" y="45" fill="#3d5a78">CONF</text>
+          </svg>
+          <div class="conf-info">
+            <div class="conf-title">Signal Strength</div>
+            <div class="conf-desc" id="confDesc">Run a prediction to see signal analysis.</div>
+            <div class="conf-strength" id="confStrength" style="display:none"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROBABILITY BARS -->
+      <div class="breakdown-wrap">
+        <div class="breakdown-card">
+          <div class="breakdown-title">Color Probability Distribution</div>
+          <div class="breakdown-row">
+            <div class="breakdown-label" style="color:var(--red)">● Red</div>
+            <div class="breakdown-bar-track"><div class="breakdown-bar-fill red" id="barRed"></div></div>
+            <div class="breakdown-pct" id="pctRed">—</div>
+          </div>
+          <div class="breakdown-row">
+            <div class="breakdown-label" style="color:var(--green)">● Green</div>
+            <div class="breakdown-bar-track"><div class="breakdown-bar-fill green" id="barGreen"></div></div>
+            <div class="breakdown-pct" id="pctGreen">—</div>
+          </div>
+          <div class="breakdown-row">
+            <div class="breakdown-label" style="color:var(--violet)">● Violet</div>
+            <div class="breakdown-bar-track"><div class="breakdown-bar-fill violet" id="barViolet"></div></div>
+            <div class="breakdown-pct" id="pctViolet">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HISTORY inside result -->
+      <div class="history-wrap" id="historyWrap" style="padding-bottom:14px">
+        <div class="history-header">
+          <div class="history-title" style="display:flex;align-items:center;gap:5px;">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
+            Recent Predictions
+          </div>
+          <button class="clear-btn" onclick="clearHistory()">Clear</button>
+        </div>
+        <div class="history-list" id="historyList">
+          <div class="history-empty" id="historyEmpty">No predictions yet</div>
+        </div>
+      </div>
+
+    </div><!-- end result-card -->
+
+  </div><!-- end page-wrap -->
+
+</main>
+
+<!-- FLOATING TELEGRAM -->
+<div class="tg-float" id="tgFloat" onclick="openTelegram()">
+  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M21.944 2.633a1.5 1.5 0 0 0-1.52-.222L2.37 9.745a1.5 1.5 0 0 0 .104 2.8l4.07 1.272 1.687 5.34a1 1 0 0 0 1.69.405l2.332-2.415 4.427 3.254a1.5 1.5 0 0 0 2.327-1.01l2.5-15a1.5 1.5 0 0 0-.563-1.758zM10 14.5l-1 3-1.5-4.75 9-5.5-6.5 7.25z" fill="white"/>
+  </svg>
+</div>
+<div class="tg-label" id="tgLabel">
+  <div class="tg-label-dot"></div>
+  Join GrowthX Channel
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── ALGORITHM ─────────────────────────────────────────────────────────
+  const colorMap = { 0:'violet',1:'green',2:'red',3:'green',4:'red',5:'violet',6:'red',7:'green',8:'red',9:'green' };
+  const colorSignals = {
+    red:    ['Strong Bearish Signal','Downtrend Detected','Sell Pressure Active','Reversal Pattern'],
+    green:  ['Bullish Momentum','Uptrend Confirmed','Buy Signal Active','Breakout Detected'],
+    violet: ['Consolidation Zone','Neutral Pressure','Range Bound','Pivot Point Detected']
+  };
+
+  function seededRandom(seed) { let x = Math.sin(seed + 1) * 10000; return x - Math.floor(x); }
+
+  function predictOutcome(period) {
+    const p = parseInt(period);
+    const d0=Math.floor(p/1000), d1=Math.floor((p%1000)/100), d2=Math.floor((p%100)/10), d3=p%10;
+    const digitSum=d0+d1+d2+d3, midSum=d1+d2, firstDigit=d0;
+
+    const raw = seededRandom(p*7 + digitSum*3);
+    const predictedNumber = Math.floor(raw * 10);
+    const predictedColor = colorMap[predictedNumber];
+
+    const r1=seededRandom(p*13+7), r2=seededRandom(p*17+11);
+    const base=[r1, r2, 1-r1-r2+(seededRandom(p)*0.3)];
+    const cb={red:0,green:0,violet:0}; cb[predictedColor]=0.25;
+    const rp={
+      red:   Math.max(0.08, Math.abs(base[0])+cb.red),
+      green: Math.max(0.08, Math.abs(base[1])+cb.green),
+      violet:Math.max(0.08, Math.abs(base[2])+cb.violet)
+    };
+    const tot=rp.red+rp.green+rp.violet;
+    let redPct=Math.round((rp.red/tot)*100), greenPct=Math.round((rp.green/tot)*100), violetPct=100-redPct-greenPct;
+
+    // Boost winner
+    if(predictedColor==='red')    redPct   =Math.max(redPct,42);
+    if(predictedColor==='green')  greenPct =Math.max(greenPct,42);
+    if(predictedColor==='violet') violetPct=Math.max(violetPct,42);
+    const tot2=redPct+greenPct+violetPct, sc=100/tot2;
+    redPct=Math.round(redPct*sc); greenPct=Math.round(greenPct*sc); violetPct=100-redPct-greenPct;
+
+    const maxPct = Math.max(redPct,greenPct,violetPct);
+    // Confidence always 80-99
+    const confidence = Math.min(99, Math.max(80, maxPct + Math.floor(seededRandom(p*5)*18)));
+
+    const isBig = predictedNumber >= 5;
+    const isEven = predictedNumber % 2 === 0;
+    const sig = colorSignals[predictedColor][Math.floor(seededRandom(p*3)*colorSignals[predictedColor].length)];
+
+    return {period:p, color:predictedColor, isBig, isEven, confidence, redPct, greenPct, violetPct, signal:sig, digitSum, midSum, firstDigit};
+  }
+
+  // ── DIGIT INPUT ───────────────────────────────────────────────────────
+  const realInput = document.getElementById('realInput');
+
+  function focusInput() { realInput.focus(); updateBoxes(realInput.value); }
+
+  function updateBoxes(val) {
+    for (let i = 0; i < 4; i++) {
+      const box = document.getElementById('d' + i);
+      box.classList.remove('filled','active');
+      if (i < val.length) {
+        box.textContent = val[i]; box.classList.add('filled');
+      } else {
+        box.textContent = '–';
+        if (i === val.length) box.classList.add('active');
+      }
+    }
+    const hint = document.getElementById('inputHint');
+    hint.classList.remove('error');
+    if      (val.length === 0) hint.textContent = 'Tap boxes above to start entering digits';
+    else if (val.length < 4)   hint.textContent = `${4-val.length} digit${4-val.length!==1?'s':''} remaining`;
+    else                       hint.innerHTML = 'Ready — tap Predict <svg width="11" height="11" viewBox="0 0 24 24" fill="var(--gold)" style="vertical-align:middle"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>';
+  }
+
+  realInput.addEventListener('input', function() {
+    this.value = this.value.replace(/[^0-9]/g,'').slice(0,4);
+    updateBoxes(this.value);
+  });
+
+  realInput.addEventListener('focus', () => {
+    const v = realInput.value;
+    for (let i=0;i<4;i++) {
+      const b=document.getElementById('d'+i); b.classList.remove('active');
+      if(i===v.length && i<4) b.classList.add('active');
+    }
+  });
+
+  realInput.addEventListener('blur', () => {
+    for(let i=0;i<4;i++) document.getElementById('d'+i).classList.remove('active');
+  });
+
+  realInput.addEventListener('keydown', e => { if(e.key==='Enter') runPrediction(); });
+
+  // ── PREDICT ───────────────────────────────────────────────────────────
+  function runPrediction() {
+    const val = realInput.value;
+    if (val.length !== 4) {
+      const hint = document.getElementById('inputHint');
+      hint.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:3px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Enter exactly 4 digits first';
+      hint.classList.add('error');
+      focusInput(); return;
+    }
+    const btn = document.getElementById('predictBtn');
+    const btnText = btn.querySelector('.btn-text');
+    btn.classList.add('loading');
+    btnText.textContent = 'Analyzing…';
+
+    const delay = 800 + Math.random() * 400;
+    setTimeout(() => {
+      try {
+        const r = predictOutcome(val);
+        displayResult(r);
+        addToHistory(r);
+      } catch(e) {
+        console.error('Prediction error:', e);
+        showToast('Something went wrong, try again');
+      } finally {
+        btn.classList.remove('loading');
+        btnText.innerHTML = 'Predict <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>';
+      }
+    }, delay);
+  }
+
+  // ── DISPLAY RESULT ────────────────────────────────────────────────────
+  function displayResult(r) {
+    // Make card visible FIRST so all elements are in DOM and accessible
+    const card = document.getElementById('resultCard');
+    card.classList.add('visible');
+
+    // Period + Confidence header
+    document.getElementById('resultPeriod').textContent = String(r.period).padStart(4,'0');
+    document.getElementById('resultConf').textContent = r.confidence + '%';
+
+    // Color
+    const orb = document.getElementById('colorOrb');
+    orb.className = 'color-orb ' + r.color;
+    const nameEl = document.getElementById('colorName');
+    nameEl.className = 'color-name ' + r.color;
+    nameEl.textContent = r.color.charAt(0).toUpperCase() + r.color.slice(1);
+    document.getElementById('colorSignal').textContent = r.signal;
+
+    // Size
+    const sp = document.getElementById('sizePill');
+    sp.className = 'size-pill ' + (r.isBig ? 'big' : 'small');
+    sp.innerHTML = r.isBig ? '↑ BIG (5-9)' : '↓ SMALL (0-4)';
+    document.getElementById('sizeReason').textContent = (r.isEven ? 'Even number' : 'Odd number') + ' · ' + (r.isBig ? 'High zone' : 'Low zone');
+
+    // Confidence ring — use querySelector to avoid SVG namespace issues
+    const circumference = 188.5;
+    const offset = circumference - (r.confidence / 100) * circumference;
+    const ringColor = r.confidence >= 90 ? '#2ecc8a' : '#3b9eff';
+    const ring = document.querySelector('#ringFill');
+    const ringTextEl = document.querySelector('#ringText');
+    if (ring) {
+      ring.setAttribute('stroke', ringColor);
+      ring.setAttribute('stroke-dashoffset', String(circumference));
+      setTimeout(() => { ring.setAttribute('stroke-dashoffset', String(offset)); }, 120);
+    }
+    if (ringTextEl) {
+      ringTextEl.textContent = r.confidence + '%';
+      ringTextEl.setAttribute('fill', ringColor);
+    }
+
+    const isHigh = r.confidence >= 88;
+    const desc = isHigh
+      ? `Strong signal detected. High confidence in ${r.color} ${r.isBig ? 'Big' : 'Small'} outcome.`
+      : `Good signal. Pattern points to ${r.color} ${r.isBig ? 'Big' : 'Small'}.`;
+    document.getElementById('confDesc').textContent = desc;
+    const cs = document.getElementById('confStrength');
+    cs.style.display = 'inline-flex';
+    cs.className = 'conf-strength ' + (isHigh ? 'high' : 'med');
+    cs.textContent = isHigh ? '● High Confidence' : '● Good Confidence';
+
+    // Bars (slight delay for animation)
+    setTimeout(() => {
+      document.getElementById('barRed').style.width    = r.redPct + '%';
+      document.getElementById('barGreen').style.width  = r.greenPct + '%';
+      document.getElementById('barViolet').style.width = r.violetPct + '%';
+      document.getElementById('pctRed').textContent    = r.redPct + '%';
+      document.getElementById('pctGreen').textContent  = r.greenPct + '%';
+      document.getElementById('pctViolet').textContent = r.violetPct + '%';
+    }, 350);
+
+    // Scroll to result
+    setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
+  }
+
+  // ── HISTORY ───────────────────────────────────────────────────────────
+  let history = JSON.parse(localStorage.getItem('gx_history') || '[]');
+
+  function addToHistory(r) {
+    history.unshift({period:r.period, color:r.color, isBig:r.isBig, confidence:r.confidence});
+    if(history.length > 5) history = history.slice(0,5);
+    localStorage.setItem('gx_history', JSON.stringify(history));
+    renderHistory();
+  }
+
+  function clearHistory() {
+    history = []; localStorage.removeItem('gx_history'); renderHistory();
+    showToast('History cleared');
+  }
+
+  function renderHistory() {
+    const list = document.getElementById('historyList');
+    const empty = document.getElementById('historyEmpty');
+    if(history.length === 0) {
+      list.innerHTML = ''; list.appendChild(empty); empty.style.display='block'; return;
+    }
+    empty.style.display = 'none';
+    list.innerHTML = '';
+    history.forEach(h => {
+      const div = document.createElement('div');
+      div.className = 'history-item';
+      div.innerHTML = `
+        <div class="h-dot ${h.color}"></div>
+        <div class="h-period">${String(h.period).padStart(4,'0')}</div>
+        <div class="h-color ${h.color}">${h.color.charAt(0).toUpperCase()+h.color.slice(1)}</div>
+        <div class="h-size ${h.isBig?'big':'small'}">${h.isBig?'BIG':'SMALL'}</div>
+        <div class="h-conf">${h.confidence}%</div>
+      `;
+      list.appendChild(div);
+    });
+  }
+
+  renderHistory();
+
+  // ── TOAST ─────────────────────────────────────────────────────────────
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  // ── TELEGRAM ─────────────────────────────────────────────────────────
+  let tgLabelVisible = false;
+  const tgFloat = document.getElementById('tgFloat');
+  const tgLabel = document.getElementById('tgLabel');
+
+  // Show label on first load briefly
+  setTimeout(() => { tgLabel.classList.add('show'); }, 1200);
+  setTimeout(() => { tgLabel.classList.remove('show'); }, 4000);
+
+  function openTelegram() {
+    // Try multiple approaches for web app compatibility
+    const url = 'https://t.me/growth_nowx';
+    // Create a temporary anchor and click it
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    showToast('Opening Telegram channel…');
+  }
+
+  // ── TICKER ────────────────────────────────────────────────────────────
+  const tickerData = [
+    {label:'RED',color:'#e84545'},{label:'GREEN',color:'#2ecc8a'},{label:'VIOLET',color:'#a855f7'},
+    {label:'BIG · 5-9',color:'#3b9eff'},{label:'SMALL · 0-4',color:'#7fa8cc'},
+    {label:'PERIOD ANALYSIS',color:'#3b9eff'},{label:'ALGO v4.2',color:'#3d5a78'},{label:'LIVE SIGNALS',color:'#2ecc8a'},
+  ];
+  (function buildTicker() {
+    const inner = document.getElementById('tickerInner');
+    [...tickerData,...tickerData].forEach(t => {
+      const item = document.createElement('div');
+      item.className = 'ticker-item';
+      item.innerHTML = `<span class="dot" style="background:${t.color}"></span>${t.label}`;
+      inner.appendChild(item);
+    });
+  })();
+</script>
+
+<!-- PASSWORD GATE -->
+<script>
+(function() {
+  'use strict';
+
+  // SHA-256 of: GrowthX@2025#Secure!
+  // Generated via: echo -n "GrowthX@2025#Secure!" | sha256sum
+  const CORRECT_HASH = '04b1569dd52e44e881cfe891f4ec68818f19f942772f98a6a284cd27d768e1cf';
+
+  const MAX_ATTEMPTS = 5;
+  const LOCKOUT_MS   = 5 * 60 * 1000;
+
+  // Session check — already unlocked this tab?
+  if (sessionStorage.getItem('gx_auth') === '1') {
+    document.getElementById('landingOverlay').style.display = 'none';
+  } else {
+    document.body.classList.add('locked');
+  }
+
+  function getAttemptData() {
+    try { return JSON.parse(localStorage.getItem('gx_lock') || '{"count":0,"until":0}'); }
+    catch(e) { return {count:0, until:0}; }
+  }
+  function saveAttemptData(d) { localStorage.setItem('gx_lock', JSON.stringify(d)); }
+
+  function updateAttemptsDisplay() {
+    const d = getAttemptData();
+    const el = document.getElementById('lockAttempts');
+    if (!el) return;
+    const now = Date.now();
+    if (d.until > now) {
+      const secs = Math.ceil((d.until - now) / 1000);
+      const mins = Math.floor(secs / 60), s = secs % 60;
+      el.textContent = 'Locked — try again in ' + mins + ':' + String(s).padStart(2,'0');
+      setTimeout(updateAttemptsDisplay, 1000);
+    } else if (d.count > 0) {
+      const left = MAX_ATTEMPTS - d.count;
+      el.textContent = left > 0 ? left + ' attempt' + (left !== 1 ? 's' : '') + ' remaining' : '';
+    } else {
+      el.textContent = '';
+    }
+  }
+
+  async function sha256hex(str) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+
+  function safeEqual(a, b) {
+    if (a.length !== b.length) return false;
+    let diff = 0;
+    for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+    return diff === 0;
+  }
+
+  window.tryUnlock = async function() {
+    const input = document.getElementById('lockInput');
+    const errEl = document.getElementById('lockError');
+    const btn   = document.getElementById('lockBtn');
+    const val   = (input.value || '').trim();
+
+    if (!val) { errEl.textContent = 'Please enter your access key.'; return; }
+
+    const d = getAttemptData();
+    const now = Date.now();
+
+    if (d.until > now) { updateAttemptsDisplay(); return; }
+    if (d.until > 0 && d.until <= now) { d.count = 0; d.until = 0; saveAttemptData(d); }
+
+    btn.classList.add('loading');
+    btn.textContent = 'Verifying…';
+    errEl.textContent = '';
+
+    // Deliberate delay to deter brute-force
+    await new Promise(r => setTimeout(r, 700 + Math.random() * 500));
+
+    const hash = await sha256hex(val);
+    const ok   = safeEqual(hash, CORRECT_HASH);
+
+    if (ok) {
+      d.count = 0; d.until = 0; saveAttemptData(d);
+      sessionStorage.setItem('gx_auth', '1');
+
+      const flash = document.getElementById('unlockFlash');
+      flash.classList.add('show');
+
+      const overlay = document.getElementById('landingOverlay');
+      overlay.style.transition = 'opacity 0.55s ease, transform 0.55s ease';
+      overlay.style.opacity = '0';
+      overlay.style.transform = 'translateY(-24px)';
+
+      setTimeout(() => {
+        overlay.style.display = 'none';
+        document.body.classList.remove('locked');
+        flash.classList.remove('show');
+      }, 560);
+
+    } else {
+      d.count++;
+      if (d.count >= MAX_ATTEMPTS) {
+        d.until = Date.now() + LOCKOUT_MS;
+        errEl.textContent = 'Too many attempts. Locked for 5 minutes.';
+      } else {
+        const left = MAX_ATTEMPTS - d.count;
+        errEl.textContent = 'Wrong access key — ' + left + ' attempt' + (left !== 1 ? 's' : '') + ' left.';
+      }
+      saveAttemptData(d);
+      updateAttemptsDisplay();
+
+      input.classList.remove('lshake');
+      void input.offsetWidth;
+      input.classList.add('lshake');
+      input.value = '';
+      setTimeout(() => input.classList.remove('lshake'), 450);
+
+      btn.classList.remove('loading');
+      btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg> Unlock GrowthX';
+    }
+  };
+
+  window.toggleLockVis = function() {
+    const inp = document.getElementById('lockInput');
+    const ico = document.getElementById('eyeIcon');
+    if (inp.type === 'password') {
+      inp.type = 'text';
+      inp.style.letterSpacing = '0.05em';
+      ico.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';
+    } else {
+      inp.type = 'password';
+      inp.style.letterSpacing = '0.15em';
+      ico.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+    }
+  };
+
+  updateAttemptsDisplay();
+})();
+</script>
+</body>
+</html>
